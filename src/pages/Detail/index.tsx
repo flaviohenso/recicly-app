@@ -1,16 +1,61 @@
-import React from 'react'
-import { View, StyleSheet, Image, Text, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, Image, Text, TouchableOpacity, Linking } from 'react-native'
 import { Feather as Icon, FontAwesome } from '@expo/vector-icons'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import { RectButton } from 'react-native-gesture-handler'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import api from '../../services/api'
+import * as MailComposer from 'expo-mail-composer'
+
+interface Params {
+    point_id: number
+}
+
+interface Data {
+    point: {
+        name: string
+        image:string
+        email:string
+        whatsapp:string
+        city:string
+        uf:string
+    }
+    itens: {
+        title: string
+    }[]
+}
 
 const Detail = () => {
+    const [data, setData] = useState<Data>({} as Data)
 
     const navigation = useNavigation()
+    const route = useRoute()
+
+    const routeParams = route.params as Params
+
+    useEffect( () => {
+        api.get(`points/${routeParams.point_id}`).then(response => {
+            setData(response.data)
+        })
+    },[])
 
     function handleNavigateBack() {
         navigation.goBack()
+    }
+
+    if(!data.point){
+        return null
+    }
+
+    function handleWhatsapp(){
+        Linking.openURL(`whatsapp://send?phone=${data.point.whatsapp}&text=Tenho interessa na coleta de residuos`)
+    }
+
+    function handleComposeMail(){
+        MailComposer.composeAsync({
+            subject: 'Interesse na coleta de resíduos.',
+            recipients: [data.point.email],
+        })
     }
 
     return (
@@ -20,23 +65,25 @@ const Detail = () => {
                     <Icon name="arrow-left" size={20} color="#34cb79" />
                 </TouchableOpacity>
 
-                <Image style={styles.pointImage} source={{ uri: 'https://thumbs.dreamstime.com/z/supermarket-facade-nara-japan-jp-april-181277984.jpg' }}></Image>
+                <Image style={styles.pointImage} source={{ uri: data.point.image }}></Image>
 
-                <Text style={styles.pointName} >Carrefour Zona Norte</Text>
-                <Text style={styles.pointItems} >Lâmpadas, Óleo de cozinha</Text>
+                <Text style={styles.pointName} >{data.point.name}</Text>
+                <Text style={styles.pointItems} >
+                    {data.itens.map(iten => iten.title).join(',')}
+                </Text>
 
                 <View>
                     <Text style={styles.addressTitle}>Endereço </Text>
-                    <Text style={styles.addressContent}>Natal, RN</Text>
+                    <Text style={styles.addressContent}>{data.point.city}, {data.point.uf}</Text>
                 </View>
             </View>
             <View style={styles.footer}>
-                <RectButton style={styles.button} onPress={() => {}}>
+                <RectButton style={styles.button} onPress={handleWhatsapp}>
                     <FontAwesome name="whatsapp" size={20} color="#FFF"></FontAwesome>
                     <Text style={styles.buttonText}>Whatsapp</Text>
                 </RectButton>
 
-                <RectButton style={styles.button} onPress={() => {}}>
+                <RectButton style={styles.button} onPress={handleComposeMail}>
                     <Icon name="mail" size={20} color="#FFF"></Icon>
                     <Text style={styles.buttonText}>E-mail</Text>
                 </RectButton>
@@ -114,7 +161,7 @@ const styles = StyleSheet.create({
     buttonText: {
         marginLeft: 8,
         color: '#FFF',
-        fontSize: 16,
+        fontSize: 20,
         fontFamily: 'Roboto_500Medium',
     },
 });

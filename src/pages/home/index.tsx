@@ -1,23 +1,27 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Feather as Icon } from '@expo/vector-icons'
-import { View, ImageBackground, Text, Image, StyleSheet } from 'react-native'
-import { RectButton} from 'react-native-gesture-handler'
+import { View, ImageBackground, Text, Image, StyleSheet, TextInput } from 'react-native'
+import { RectButton } from 'react-native-gesture-handler'
 import { useNavigation } from '@react-navigation/native'
 
 const Home = () => {
 
+  const [ uf, setUf ] = useState('')
+  const [ city, setCity ] = useState('')
   const navigation = useNavigation()
 
-  function handleNavigateToPoints(){
-    navigation.navigate('Points')
+
+
+  function handleNavigateToPoints() {
+    navigation.navigate('Points', {uf, city})
   }
 
   return (
     <ImageBackground
       source={require('../../assets/home-background.png')}
       style={styles.container}
-      imageStyle={{ height:368, width:274 }}
-      >
+      imageStyle={{ height: 368, width: 274 }}
+    >
       <View style={styles.main}>
         <Image source={require('../../assets/logo.png')} />
         <Text style={styles.title}>Seu marketplace de coleta de resíduos</Text>
@@ -25,16 +29,33 @@ const Home = () => {
       </View>
 
       <View style={styles.footer}>
+
+        <TextInput
+          style={styles.input}
+          placeholder='Digite o estado'
+          value={uf}
+          maxLength={2}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          onChangeText={setUf}>
+        </TextInput>
+        <TextInput style={styles.input}
+          placeholder='Digite a cidade'
+          value={city}
+          autoCorrect={false}
+          onChangeText={setCity}>
+        </TextInput>
+
         <RectButton style={styles.button} onPress={handleNavigateToPoints}>
 
-            <View style={styles.buttonIcon}>
-                <Text>
-                  <Icon name="arrow-right" color="#FFF" size={24}></Icon>
-                </Text>
-            </View>
-            <Text style={styles.buttonText}>
-              Entrar
+          <View style={styles.buttonIcon}>
+            <Text>
+              <Icon name="arrow-right" color="#FFF" size={24}></Icon>
             </Text>
+          </View>
+          <Text style={styles.buttonText}>
+            Entrar
+          </Text>
         </RectButton>
       </View>
 
@@ -109,6 +130,10 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontFamily: 'Roboto_500Medium',
     fontSize: 16,
+  },
+
+  textInput: {
+    fontSize: 14,
   }
 });
 
